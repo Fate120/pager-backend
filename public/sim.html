@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kasir & Papan Antrean - Pager Simulator</title>
+  <style>
+    :root {
+      --bg: #0F172A;
+      --panel-bg: #1E293B;
+      --card-bg: #334155;
+      --border: #475569;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --primary: #38BDF8;
+      --accent: #FA6800;
+      --green: #10B981;
+      --green-dark: #059669;
+      --amber: #F59E0B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #090D16;
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      background: var(--accent);
+      color: #FFFFFF;
+      font-weight: 800;
+      font-size: 14px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      letter-spacing: 0.05em;
+    }
+
+    .brand h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #34D399;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.3); }
+    }
+
+    /* Main Container Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 440px 1fr;
+      flex: 1;
+      height: calc(100vh - 65px);
+      overflow: hidden;
+    }
+
+    @media (max-width: 960px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow: visible;
+      }
+    }
+
+    /* Column 1: POS Simulator */
+    .pos-col {
+      background: var(--panel-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .menu-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: left;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: all 0.15s;
+    }
+
+    .menu-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .menu-btn:active {
+      transform: scale(0.98);
+    }
+
+    .menu-btn-name {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .menu-btn-price {
+      font-size: 13px;
+      color: #38BDF8;
+      font-weight: 700;
+    }
+
+    /* Cart Box */
+    .cart-box {
+      background: #090D16;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .cart-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    .cart-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed #334155;
+    }
+
+    .cart-item-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cart-item-title {
+      font-weight: 600;
+    }
+
+    .cart-item-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .cart-qty-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-qty {
+      background: #334155;
+      color: #FFFFFF;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .cart-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    .input-notes {
+      width: 100%;
+      background: #1E293B;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #FFFFFF;
+      font-size: 13px;
+    }
+
+    .btn-checkout {
+      background: var(--accent);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-checkout:hover {
+      background: #E55D00;
+      box-shadow: 0 4px 12px rgba(250, 104, 0, 0.35);
+    }
+
+    .btn-checkout:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Thermal Receipt Preview Box */
+    .receipt-preview-box {
+      display: none;
+      background: #FFFFFF;
+      color: #000000;
+      border-radius: 12px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    .receipt-center {
+      text-align: center;
+    }
+
+    .receipt-qr-wrap {
+      display: flex;
+      justify-content: center;
+      margin: 12px 0;
+    }
+
+    .receipt-qr-wrap svg {
+      width: 140px;
+      height: 140px;
+    }
+
+    .receipt-queue-num {
+      font-size: 38px;
+      font-weight: 900;
+      text-align: center;
+      margin: 6px 0;
+      font-family: sans-serif;
+    }
+
+    .btn-open-ticket {
+      display: block;
+      width: 100%;
+      background: #0284C7;
+      color: #FFFFFF;
+      text-align: center;
+      padding: 10px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    /* Column 2: Active Queue Board */
+    .board-col {
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 24px;
+      gap: 16px;
+    }
+
+    .board-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .board-title {
+      font-size: 20px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .board-count-pill {
+      background: var(--card-bg);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      border: 1px solid var(--border);
+    }
+
+    .queue-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .order-card {
+      background: var(--panel-bg);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+
+    .order-card.ready {
+      border-color: var(--green);
+      background: #064E3B;
+    }
+
+    .order-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .order-card-num {
+      font-size: 32px;
+      font-weight: 900;
+      color: #FFFFFF;
+      line-height: 1;
+    }
+
+    .order-card-badge {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    .badge-prep {
+      background: rgba(245, 158, 11, 0.2);
+      color: #FBBF24;
+      border: 1px solid #F59E0B;
+    }
+
+    .badge-rdy {
+      background: #10B981;
+      color: #FFFFFF;
+    }
+
+    .order-card-items {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      min-height: 38px;
+    }
+
+    .order-card.ready .order-card-items {
+      color: #D1FAE5;
+    }
+
+    .order-card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-call {
+      background: #059669;
+      color: #FFFFFF;
+    }
+    .btn-call:hover { background: #047857; }
+
+    .btn-recall {
+      background: #D97706;
+      color: #FFFFFF;
+    }
+    .btn-recall:hover { background: #B45309; }
+
+    .btn-complete {
+      background: #3B82F6;
+      color: #FFFFFF;
+    }
+    .btn-complete:hover { background: #2563EB; }
+
+    /* Modal Confirmation */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-card {
+      background: #1E293B;
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .modal-num {
+      font-size: 52px;
+      font-weight: 900;
+      color: #38BDF8;
+      margin: 10px 0;
+    }
+
+    .modal-btns {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn-modal-cancel {
+      flex: 1;
+      background: #334155;
+      color: #FFFFFF;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-modal-confirm {
+      flex: 1.4;
+      background: #059669;
+      color: #FFFFFF;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="logo-badge">PAGER</span>
+      <h1>Simulator Kasir Tablet & Papan Antrean</h1>
+    </div>
+    <div class="live-badge">
+      <span class="live-dot"></span>
+      <span id="staff-live-text">Terhubung Realtime</span>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    <!-- COLUMN 1: POS INPUT & STRUK -->
+    <div class="pos-col">
+      <div class="section-title">
+        <span>1. Kasir POS & Menu Cepat</span>
+      </div>
+
+      <!-- Preset Menu Grid -->
+      <div class="menu-grid">
+        <button class="menu-btn" type="button" onclick="addToCart('Kopi Susu Aren', 18000)">
+          <div class="menu-btn-name">☕ Kopi Susu Aren</div>
+          <div class="menu-btn-price">Rp 18.000</div>
+        </button>
+        <button class="menu-btn" type="button" onclick="addToCart('Americano Ice', 15000)">
+          <div class="menu-btn-name">🧊 Americano Ice</div>
+          <div class="menu-btn-price">Rp 15.000</div>
+        </button>
+        <button class="menu-btn" type="button" onclick="addToCart('Matcha Latte', 22000)">
+          <div class="menu-btn-name">🍵 Matcha Latte</div>
+          <div class="menu-btn-price">Rp 22.000</div>
+        </button>
+        <button class="menu-btn" type="button" onclick="addToCart('Toast Coklat', 20000)">
+          <div class="menu-btn-name">🍞 Toast Coklat</div>
+          <div class="menu-btn-price">Rp 20.000</div>
+        </button>
+      </div>
+
+      <!-- Cart Box -->
+      <div class="cart-box">
+        <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">
+          Pesanan Pelanggan
+        </div>
+        <div id="cart-items" class="cart-items">
+          <div style="color:var(--text-muted); font-size:13px; text-align:center; padding:12px;">
+            Pilih menu di atas untuk menambah pesanan
+          </div>
+        </div>
+        <input id="input-notes" class="input-notes" type="text" placeholder="Catatan dapur (contoh: Less sugar)">
+        <div class="cart-total-row">
+          <span>TOTAL</span>
+          <span id="cart-total">Rp 0</span>
+        </div>
+      </div>
+
+      <button id="btn-checkout" class="btn-checkout" type="button" onclick="submitOrder()">
+        <span>⚡ Buat Pesanan & Cetak Struk Terpadu</span>
+      </button>
+
+      <!-- Simulated Thermal Receipt Preview -->
+      <div id="receipt-preview-box" class="receipt-preview-box">
+        <div class="receipt-center">
+          <strong>KEDAI KOPI AKSIVA</strong><br>
+          <span style="font-size:11px;">Struk Transaksi & Pager Digital</span>
+        </div>
+        <hr style="margin:8px 0; border:none; border-top:1px dashed #000;">
+        <div id="receipt-items-summary" style="margin-bottom:6px;"></div>
+        <div style="display:flex; justify-content:space-between; font-weight:bold;">
+          <span>TOTAL BAYAR</span>
+          <span id="receipt-total"></span>
+        </div>
+        <hr style="margin:8px 0; border:none; border-top:2px solid #000;">
+        <div class="receipt-center" style="font-size:11px; font-weight:bold;">NOMOR PESANAN</div>
+        <div id="receipt-queue-num" class="receipt-queue-num">A001</div>
+        <div class="receipt-qr-wrap" id="receipt-qr-wrap"></div>
+        <div class="receipt-center" style="font-size:10px;">
+          Scan QR untuk memantau status pesanan<br>
+          HP akan berdering saat makanan siap
+        </div>
+        <a id="btn-open-ticket" class="btn-open-ticket" href="#" target="_blank">
+          📲 Buka Halaman Pelanggan (Tab Baru)
+        </a>
+      </div>
+    </div>
+
+    <!-- COLUMN 2: ACTIVE QUEUE BOARD -->
+    <div class="board-col">
+      <div class="board-header">
+        <div class="board-title">
+          <span>2. Papan Antrean Dapur & Kasir</span>
+          <span id="active-count-badge" class="board-count-pill">0 Pesanan Aktif</span>
+        </div>
+      </div>
+
+      <div id="queue-grid" class="queue-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="modal-confirm" class="modal-overlay">
+    <div class="modal-card">
+      <div style="font-size:14px; font-weight:700; color:var(--text-muted);">KONFIRMASI PANGGILAN</div>
+      <div id="modal-queue-num" class="modal-num">A001</div>
+      <p id="modal-desc" style="font-size:14px; color:var(--text-muted); line-height:1.4;">
+        Kirim sinyal realtime & bunyikan pager HP pelanggan sekarang?
+      </p>
+      <div class="modal-btns">
+        <button class="btn-modal-cancel" type="button" onclick="closeModal()">Batal</button>
+        <button id="btn-modal-yes" class="btn-modal-confirm" type="button">Ya, Panggil</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- CART STATE ---
+    let cart = [];
+    let activeTickets = [];
+
+    function addToCart(productName, unitPrice) {
+      const existing = cart.find(it => it.productName === productName);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ productName, unitPrice, quantity: 1 });
+      }
+      renderCart();
+    }
+
+    function changeQty(productName, delta) {
+      const idx = cart.findIndex(it => it.productName === productName);
+      if (idx !== -1) {
+        cart[idx].quantity += delta;
+        if (cart[idx].quantity <= 0) {
+          cart.splice(idx, 1);
+        }
+      }
+      renderCart();
+    }
+
+    function renderCart() {
+      const container = document.getElementById('cart-items');
+      const totalEl = document.getElementById('cart-total');
+      const checkoutBtn = document.getElementById('btn-checkout');
+
+      if (cart.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:12px;">Pilih menu di atas untuk menambah pesanan</div>';
+        totalEl.textContent = 'Rp 0';
+        checkoutBtn.disabled = true;
+        return;
+      }
+
+      checkoutBtn.disabled = false;
+      let total = 0;
+      let html = '';
+
+      for (const it of cart) {
+        const itemTotal = it.quantity * it.unitPrice;
+        total += itemTotal;
+        html += `
+          <div class="cart-item-row">
+            <div class="cart-item-info">
+              <span class="cart-item-title">${it.productName}</span>
+              <span class="cart-item-sub">Rp ${it.unitPrice.toLocaleString('id-ID')}</span>
+            </div>
+            <div class="cart-qty-ctrl">
+              <button class="btn-qty" type="button" onclick="changeQty('${it.productName}', -1)">-</button>
+              <span style="font-weight:bold; font-size:13px;">${it.quantity}</span>
+              <button class="btn-qty" type="button" onclick="changeQty('${it.productName}', 1)">+</button>
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+      totalEl.textContent = 'Rp ' + total.toLocaleString('id-ID');
+    }
+
+    // Default 1 item in cart for quick start
+    addToCart('Kopi Susu Aren', 18000);
+
+    // --- CREATE POS ORDER ---
+    async function submitOrder() {
+      if (cart.length === 0) return;
+      const notes = document.getElementById('input-notes').value.trim();
+      const items = cart.map(it => ({
+        productName: it.productName,
+        quantity: it.quantity,
+        unitPrice: it.unitPrice,
+        notes: notes || undefined
+      }));
+
+      const checkoutBtn = document.getElementById('btn-checkout');
+      checkoutBtn.disabled = true;
+      checkoutBtn.textContent = 'Memproses...';
+
+      try {
+        const res = await fetch('/api/v1/pos/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            paymentMethod: 'cash',
+            items,
+            cashPaid: 50000
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          showReceipt(data);
+          // reset cart
+          cart = [];
+          document.getElementById('input-notes').value = '';
+          renderCart();
+          // refresh active queue
+          fetchActiveQueue();
+        } else {
+          alert('Gagal membuat pesanan');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Terjadi kesalahan jaringan');
+      } finally {
+        checkoutBtn.disabled = false;
+        checkoutBtn.textContent = '⚡ Buat Pesanan & Cetak Struk Terpadu';
+      }
+    }
+
+    function showReceipt(data) {
+      const box = document.getElementById('receipt-preview-box');
+      document.getElementById('receipt-queue-num').textContent = data.queueNumber;
+      document.getElementById('receipt-qr-wrap').innerHTML = data.qrSvg;
+      document.getElementById('receipt-items-summary').textContent = data.ticket.itemsSummary;
+      document.getElementById('receipt-total').textContent = 'Rp ' + (data.ticket.totalAmount || 0).toLocaleString('id-ID');
+      
+      const btnLink = document.getElementById('btn-open-ticket');
+      btnLink.href = data.ticketUrl;
+
+      box.style.display = 'block';
+      box.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // --- ACTIVE QUEUE BOARD ---
+    async function fetchActiveQueue() {
+      try {
+        const res = await fetch('/api/v1/queue/active');
+        if (res.ok) {
+          const data = await res.json();
+          activeTickets = data.activeTickets || [];
+          renderQueueBoard();
+        }
+      } catch (e) {
+        console.warn('Gagal fetch active queue:', e);
+      }
+    }
+
+    function renderQueueBoard() {
+      const container = document.getElementById('queue-grid');
+      const countEl = document.getElementById('active-count-badge');
+      countEl.textContent = activeTickets.length + ' Pesanan Aktif';
+
+      if (activeTickets.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); padding:30px; text-align:center; grid-column:1/-1;">Belum ada pesanan aktif. Buat pesanan baru di panel kiri!</div>';
+        return;
+      }
+
+      let html = '';
+      for (const ticket of activeTickets) {
+        const isReady = ticket.status === 'ready';
+        html += `
+          <div class="order-card ${isReady ? 'ready' : ''}" id="card-${ticket.ticketId}">
+            <div class="order-card-top">
+              <span class="order-card-num">${ticket.queueNumber}</span>
+              <span class="order-card-badge ${isReady ? 'badge-rdy' : 'badge-prep'}">
+                ${isReady ? '🔔 Siap Diambil' : '⏳ Disiapkan'}
+              </span>
+            </div>
+            <div class="order-card-items">
+              ${ticket.itemsSummary}
+            </div>
+            <div class="order-card-actions">
+              ${!isReady ? `
+                <button class="btn-action btn-call" type="button" onclick="confirmCall('${ticket.ticketId}', '${ticket.queueNumber}', '${ticket.itemsSummary.replace(/'/g, "\\'")}')">
+                  🔔 Panggil
+                </button>
+              ` : `
+                <button class="btn-action btn-recall" type="button" onclick="recallOrder('${ticket.ticketId}')">
+                  🔁 Panggil Ulang (${ticket.callCount})
+                </button>
+                <button class="btn-action btn-complete" type="button" onclick="completeOrder('${ticket.ticketId}')">
+                  ✓ Selesai
+                </button>
+              `}
+              <a href="/t/${ticket.token}" target="_blank" style="padding:10px; background:#334155; color:#FFF; border-radius:8px; text-decoration:none; display:flex; align-items:center;" title="Buka Tiket">
+                ↗
+              </a>
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    // --- CALL ACTIONS ---
+    let pendingCallId = null;
+
+    function confirmCall(ticketId, queueNumber, summary) {
+      pendingCallId = ticketId;
+      document.getElementById('modal-queue-num').textContent = queueNumber;
+      document.getElementById('modal-desc').textContent = 'Panggil pesanan: ' + summary + '? Sinyal bel & layar hijau akan langsung menyala di HP pelanggan.';
+      document.getElementById('modal-confirm').style.display = 'flex';
+
+      document.getElementById('btn-modal-yes').onclick = async () => {
+        const targetId = pendingCallId;
+        closeModal();
+        if (!targetId) return;
+        try {
+          const res = await fetch('/api/v1/queue/' + targetId + '/call', { method: 'POST' });
+          if (res.ok) {
+            fetchActiveQueue();
+          } else {
+            alert('Gagal memanggil antrean');
+          }
+        } catch (e) {
+          alert('Gagal memanggil antrean');
+        }
+      };
+    }
+
+    function closeModal() {
+      document.getElementById('modal-confirm').style.display = 'none';
+      pendingCallId = null;
+    }
+
+    async function recallOrder(ticketId) {
+      try {
+        await fetch('/api/v1/queue/' + ticketId + '/recall', { method: 'POST' });
+        fetchActiveQueue();
+      } catch (e) {
+        alert('Gagal panggil ulang');
+      }
+    }
+
+    async function completeOrder(ticketId) {
+      try {
+        await fetch('/api/v1/queue/' + ticketId + '/complete', { method: 'POST' });
+        fetchActiveQueue();
+      } catch (e) {
+        alert('Gagal menyelesaikan pesanan');
+      }
+    }
+
+    // --- STAFF REALTIME SSE ---
+    function connectStaffSSE() {
+      const sse = new EventSource('/api/v1/staff/stream');
+      sse.addEventListener('order_created', (e) => {
+        fetchActiveQueue();
+      });
+      sse.addEventListener('ticket_updated', (e) => {
+        fetchActiveQueue();
+      });
+      sse.onopen = () => {
+        document.getElementById('staff-live-text').textContent = 'Terhubung Realtime';
+      };
+      sse.onerror = () => {
+        document.getElementById('staff-live-text').textContent = 'Menghubungkan...';
+      };
+    }
+
+    // Initialize
+    fetchActiveQueue();
+    connectStaffSSE();
+  </script>
+</body>
+</html>

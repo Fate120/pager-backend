@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAGER — Papan Antrean</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #1E60EC;
+      --yellow: #FFCC00;
+      --green: #10B981;
+      --green-bg: #D2F8D2;
+      --red: #DC2626;
+      --coral: #EF4444;
+      --canvas: #F4F4F0;
+      --card: #FFFFFF;
+      --border: #000000;
+      --text: #0F172A;
+      --text-light: #64748B;
+    }
+    
+    body {
+      font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background: var(--canvas);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    
+    /* Top Bar */
+    .top-bar {
+      background: var(--card);
+      border-bottom: 3px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    
+    .brand {
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--border);
+    }
+    
+    .store-btn {
+      padding: 8px 16px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+      max-width: 600px;
+    }
+    
+    .tab {
+      padding: 10px 20px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .tab.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+    }
+    
+    .status-pill .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--primary);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    
+    /* Main */
+    .main-container {
+      padding: 20px;
+    }
+    
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .kpi-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 3px 3px 0 var(--border);
+    }
+    
+    .kpi-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-light);
+    }
+    
+    .kpi-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    
+    .kpi-value {
+      font-size: 32px;
+      font-weight: 900;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .kpi-label {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+    
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .filter-tab {
+      padding: 10px 20px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .filter-tab.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .filter-actions {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .action-btn {
+      padding: 10px 16px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .action-btn.yellow {
+      background: var(--yellow);
+    }
+    
+    /* Queue Grid */
+    .queue-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    
+    .queue-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 3px 3px 0 var(--border);
+      position: relative;
+    }
+    
+    .queue-card.ready {
+      background: var(--green-bg);
+    }
+    
+    .queue-card.delayed {
+      border-top: 4px solid var(--red);
+    }
+    
+    .queue-card.fresh {
+      border-top: 4px solid var(--primary);
+    }
+    
+    .queue-card.warning {
+      border-top: 4px solid var(--yellow);
+    }
+    
+    .queue-num {
+      font-size: 42px;
+      font-weight: 900;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 8px;
+    }
+    
+    .queue-customer {
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+    
+    .queue-meta {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .queue-badge {
+      padding: 4px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    
+    .badge-preparing {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+    
+    .badge-ready {
+      background: var(--green-bg);
+      color: #065F46;
+    }
+    
+    .badge-dine {
+      background: #DBEAFE;
+      color: #1E40AF;
+    }
+    
+    .badge-take {
+      background: #FCE7F3;
+      color: #9F1239;
+    }
+    
+    .queue-time {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    
+    .queue-items {
+      margin-bottom: 16px;
+      padding: 12px;
+      background: #F8FAFC;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+    }
+    
+    .queue-item {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .queue-note {
+      font-size: 11px;
+      color: var(--text-light);
+      font-style: italic;
+      margin-left: 16px;
+    }
+    
+    .queue-total {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      font-family: monospace;
+    }
+    
+    .queue-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn-call {
+      flex: 1;
+      padding: 12px;
+      background: var(--primary);
+      color: white;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .btn-call:active {
+      transform: translate(2px, 2px);
+      box-shadow: none;
+    }
+    
+    .btn-recall {
+      flex: 1;
+      padding: 12px;
+      background: var(--yellow);
+      color: var(--border);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .btn-recall.urgent {
+      background: var(--coral);
+      color: white;
+    }
+    
+    .btn-complete {
+      flex: 1;
+      padding: 12px;
+      background: var(--green);
+      color: white;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .modal.show { display: flex; }
+    
+    .modal-content {
+      background: var(--card);
+      border: 3px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 6px 6px 0 var(--border);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      cursor: pointer;
+      font-weight: 700;
+    }
+    
+    .modal-queue-num {
+      font-size: 72px;
+      font-weight: 900;
+      font-family: 'JetBrains Mono', monospace;
+      text-align: center;
+      margin: 20px 0;
+    }
+    
+    .modal-customer {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+    
+    .modal-checklist {
+      background: #F8FAFC;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .checklist-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-bottom: 12px;
+    }
+    
+    .modal-notice {
+      background: #EFF6FF;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .modal-btn {
+      flex: 1;
+      padding: 14px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .modal-btn.primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    /* Bottom Bar */
+    .bottom-bar {
+      background: var(--card);
+      border-top: 3px solid var(--border);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+    
+    .relay-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    .ws-badge {
+      padding: 6px 12px;
+      background: var(--green-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    
+    .test-btn {
+      padding: 8px 16px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="brand">PAGER POS & PAGER DIGITAL</div>
+    <button class="store-btn">☕ KEDAI KOPI AKSIVA</button>
+    <div class="tabs">
+      <div class="tab" onclick="window.location.href='/pos'">Kasir & Katalog (POS)</div>
+      <div class="tab active" onclick="window.location.href='/queue'">Papan Antrean</div>
+    </div>
+    <div class="status-bar">
+      <div class="status-pill">
+        <span class="dot"></span>
+        <span>Printer Thermal: Ready [58mm]</span>
+      </div>
+      <div class="status-pill">Kasir: <strong>Budi</strong></div>
+      <div class="status-pill" id="clock">14:32</div>
+      <div class="avatar">B</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main-container">
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-dot" style="background: var(--yellow);"></span>
+          <span>Antrean Dapur</span>
+        </div>
+        <div class="kpi-value" id="kpi-preparing">00</div>
+        <div class="kpi-label">Tiket</div>
+      </div>
+      
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-dot" style="background: var(--green);"></span>
+          <span>Siap Diserahkan</span>
+        </div>
+        <div class="kpi-value" id="kpi-ready">00</div>
+        <div class="kpi-label">Tiket</div>
+      </div>
+      
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-dot" style="background: var(--primary);"></span>
+          <span>Kecepatan Bar</span>
+        </div>
+        <div class="kpi-value" id="kpi-speed">0.0</div>
+        <div class="kpi-label" id="kpi-speed-label">Mnt • Sesuai SLA</div>
+      </div>
+      
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-dot" style="background: var(--text-light);"></span>
+          <span>Selesai Hari Ini</span>
+        </div>
+        <div class="kpi-value" id="kpi-completed">00</div>
+        <div class="kpi-label" id="kpi-revenue">Total IDR 0</div>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-tabs">
+        <div class="filter-tab active" data-filter="all">Semua Antrean <span id="count-all">(0)</span></div>
+        <div class="filter-tab" data-filter="preparing">Sedang Disiapkan <span id="count-preparing">(0)</span></div>
+        <div class="filter-tab" data-filter="ready">Siap Diambil <span id="count-ready">(0)</span></div>
+      </div>
+      <div class="filter-actions">
+        <button class="action-btn">Tampilkan QR di Tablet</button>
+        <button class="action-btn yellow">Cetak Ulang Tiket</button>
+      </div>
+    </div>
+
+    <!-- Queue Grid -->
+    <div class="queue-grid" id="queue-grid">
+      <!-- Cards generated by JS -->
+    </div>
+  </div>
+
+  <!-- Bottom Bar -->
+  <div class="bottom-bar">
+    <div class="relay-status">
+      <span>Sistem Web Audio Chime & Pager Relay Aktif</span>
+      <span class="ws-badge">🟢 WebSocket Live: <span id="ws-latency">--</span>ms</span>
+    </div>
+    <button class="test-btn" onclick="testChime()">Uji Suara Bell</button>
+  </div>
+
+  <!-- Call Confirmation Modal -->
+  <div class="modal" id="call-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">⚠ Konfirmasi Panggilan Pelanggan</div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-queue-num" id="modal-queue-num">A023</div>
+      <div class="modal-customer" id="modal-customer">Pemesanan: Pelanggan</div>
+      <div class="modal-checklist">
+        <div class="checklist-title">Verifikasi Fisik Produk Siap</div>
+        <div id="modal-items" style="font-size:13px; line-height:1.8;"></div>
+        <div style="margin-top:12px; font-size:12px; color: var(--text-light);">
+          ⏱ Durasi pembuatan saat ini: <span id="modal-duration">--</span>
+        </div>
+      </div>
+      <div class="modal-notice">
+        Menekan tombol <strong>Panggil Pelanggan</strong> akan langsung mengaktifkan nada dering counter, menyalakan getaran di ponsel pelanggan, dan memperbarui status tiket menjadi <strong>SIAP DIAMBIL</strong>.
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn" onclick="closeModal()">✕ Batal / Belum Siap</button>
+        <button class="modal-btn primary" onclick="confirmCall()">📢 YA, PANGGIL SEKARANG!</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let tickets = [];
+    let activeFilter = 'all';
+    let pendingTicketId = null;
+    let eventSource = null;
+    
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+    
+    // SSE connection
+    function connectSSE() {
+      eventSource = new EventSource('/api/v1/staff/stream');
+      const startTime = Date.now();
+      
+      eventSource.addEventListener('ticket_update', (e) => {
+        const latency = Date.now() - startTime;
+        document.getElementById('ws-latency').textContent = latency < 100 ? latency : '--';
+        fetchQueue();
+      });
+      
+      eventSource.addEventListener('order_created', () => {
+        fetchQueue();
+      });
+      
+      eventSource.onerror = () => {
+        document.getElementById('ws-latency').textContent = '⚠️';
+        setTimeout(() => {
+          if (eventSource.readyState === EventSource.CLOSED) {
+            connectSSE();
+          }
+        }, 3000);
+      };
+    }
+    
+    // Fetch queue
+    async function fetchQueue() {
+      const res = await fetch('/api/v1/queue/active');
+      if (!res.ok) return;
+      const data = await res.json();
+      tickets = data.activeTickets || [];
+      renderQueue();
+      updateKPI();
+    }
+    
+    // Update KPI
+    function updateKPI() {
+      const preparing = tickets.filter(t => t.status === 'preparing').length;
+      const ready = tickets.filter(t => t.status === 'ready').length;
+      
+      document.getElementById('kpi-preparing').textContent = String(preparing).padStart(2, '0');
+      document.getElementById('kpi-ready').textContent = String(ready).padStart(2, '0');
+      
+      document.getElementById('count-all').textContent = `(${tickets.length})`;
+      document.getElementById('count-preparing').textContent = `(${preparing})`;
+      document.getElementById('count-ready').textContent = `(${ready})`;
+      
+      // Calculate avg speed (mock for now)
+      const avgSpeed = tickets.length > 0 ? 6.4 : 0;
+      document.getElementById('kpi-speed').textContent = avgSpeed.toFixed(1);
+    }
+    
+    // Render queue
+    function renderQueue() {
+      const grid = document.getElementById('queue-grid');
+      let filtered = tickets;
+      if (activeFilter === 'preparing') filtered = tickets.filter(t => t.status === 'preparing');
+      if (activeFilter === 'ready') filtered = tickets.filter(t => t.status === 'ready');
+      
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:60px; color: var(--text-light);">Tidak ada antrean aktif.</div>';
+        return;
+      }
+      
+      grid.innerHTML = filtered.map(ticket => {
+        const elapsed = Math.floor((Date.now() - new Date(ticket.createdAt)) / 60000);
+        const isDelayed = elapsed > 8;
+        const isFresh = elapsed <= 1;
+        const isWarning = elapsed > 3 && elapsed <= 8;
+        
+        let cardClass = 'queue-card';
+        if (ticket.status === 'ready') cardClass += ' ready';
+        else if (isDelayed) cardClass += ' delayed';
+        else if (isFresh) cardClass += ' fresh';
+        else if (isWarning) cardClass += ' warning';
+        
+        const timeIcon = isDelayed ? '⚠️' : isFresh ? '🆕' : '🕒';
+        const timeText = `${timeIcon} ${elapsed} mnt lalu`;
+        
+        const statusBadge = ticket.status === 'preparing' 
+          ? '<span class="queue-badge badge-preparing">Sedang Disiapkan</span>'
+          : `<span class="queue-badge badge-ready">Siap di Pick-up Bar</span>`;
+        
+        const typeBadge = ticket.orderType === 'dine_in'
+          ? `<span class="queue-badge badge-dine">Dine-in${ticket.tableNo ? ' • Meja ' + ticket.tableNo : ''}</span>`
+          : '<span class="queue-badge badge-take">Takeaway</span>';
+        
+        const itemsHtml = ticket.items.map(item => {
+          const notes = item.notes ? `<div class="queue-note">${item.notes}</div>` : '';
+          return `<div class="queue-item">${item.quantity}x ${item.productName}${notes}</div>`;
+        }).join('');
+        
+        let actionsHtml = '';
+        if (ticket.status === 'preparing') {
+          actionsHtml = `<button class="btn-call" onclick="openCallModal('${ticket.ticketId}')">📢 PANGGIL SEKARANG</button>`;
+        } else {
+          const recallClass = ticket.callCount >= 2 ? 'btn-recall urgent' : 'btn-recall';
+          const recallText = ticket.callCount >= 2 ? `↺ RECALL (${ticket.callCount + 1}x)` : '↺ PANGGIL ULANG';
+          actionsHtml = `
+            <button class="${recallClass}" onclick="recall('${ticket.ticketId}')">${recallText}</button>
+            <button class="btn-complete" onclick="complete('${ticket.ticketId}')">✔ SERAHKAN</button>
+          `;
+        }
+        
+        const callBadge = ticket.callCount > 0 
+          ? `<span class="queue-badge" style="background: ${ticket.callCount >= 2 ? 'var(--coral)' : 'var(--green)'}; color: white;">
+               ${ticket.callCount >= 2 ? '🔔' : '✓'} Dipanggil ${ticket.callCount}x (${Math.floor((Date.now() - new Date(ticket.calledAt)) / 60000)} mnt)
+             </span>`
+          : '';
+        
+        return `
+          <div class="${cardClass}">
+            <div class="queue-num">${ticket.queueNumber}</div>
+            <div class="queue-customer">${ticket.customerName || 'Pelanggan'}</div>
+            <div class="queue-meta">
+              ${statusBadge}
+              ${typeBadge}
+              ${callBadge}
+            </div>
+            <div class="queue-time">${timeText}</div>
+            <div class="queue-items">${itemsHtml}</div>
+            <div class="queue-total">Total: Rp ${ticket.totalAmount.toLocaleString()}</div>
+            <div class="queue-actions">${actionsHtml}</div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // Filter tabs
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        activeFilter = tab.dataset.filter;
+        renderQueue();
+      });
+    });
+    
+    // Open call modal
+    function openCallModal(ticketId) {
+      const ticket = tickets.find(t => t.ticketId === ticketId);
+      if (!ticket) return;
+      
+      pendingTicketId = ticketId;
+      document.getElementById('modal-queue-num').textContent = ticket.queueNumber;
+      document.getElementById('modal-customer').textContent = `Pemesanan: ${ticket.customerName || 'Pelanggan'}`;
+      
+      const itemsHtml = ticket.items.map(item => 
+        `${item.quantity}x ${item.productName}${item.notes ? ' (' + item.notes + ')' : ''}`
+      ).join('<br>');
+      document.getElementById('modal-items').innerHTML = itemsHtml;
+      
+      const elapsed = Math.floor((Date.now() - new Date(ticket.createdAt)) / 60000);
+      document.getElementById('modal-duration').textContent = `${elapsed} menit lalu`;
+      
+      document.getElementById('call-modal').classList.add('show');
+    }
+    
+    function closeModal() {
+      document.getElementById('call-modal').classList.remove('show');
+      pendingTicketId = null;
+    }
+    
+    async function confirmCall() {
+      if (!pendingTicketId) return;
+      const res = await fetch(`/api/v1/queue/${pendingTicketId}/call`, { method: 'POST' });
+      if (res.ok) {
+        closeModal();
+        fetchQueue();
+      } else {
+        alert('Gagal memanggil antrean');
+      }
+    }
+    
+    async function recall(ticketId) {
+      const res = await fetch(`/api/v1/queue/${ticketId}/recall`, { method: 'POST' });
+      if (res.ok) fetchQueue();
+      else alert('Gagal memanggil ulang');
+    }
+    
+    async function complete(ticketId) {
+      const res = await fetch(`/api/v1/queue/${ticketId}/complete`, { method: 'POST' });
+      if (res.ok) fetchQueue();
+      else alert('Gagal menyelesaikan pesanan');
+    }
+    
+    function testChime() {
+      const audio = new AudioContext();
+      const osc = audio.createOscillator();
+      const gain = audio.createGain();
+      osc.connect(gain);
+      gain.connect(audio.destination);
+      osc.frequency.value = 880;
+      gain.gain.value = 0.3;
+      osc.start();
+      osc.stop(audio.currentTime + 0.15);
+      setTimeout(() => {
+        const osc2 = audio.createOscillator();
+        const gain2 = audio.createGain();
+        osc2.connect(gain2);
+        gain2.connect(audio.destination);
+        osc2.frequency.value = 1046.5;
+        gain2.gain.value = 0.3;
+        osc2.start();
+        osc2.stop(audio.currentTime + 0.15);
+      }, 400);
+    }
+    
+    // Init
+    connectSSE();
+    fetchQueue();
+  </script>
+</body>
+</html>

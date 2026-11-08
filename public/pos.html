@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAGER POS — Kasir & Katalog</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #1E60EC;
+      --yellow: #FFCC00;
+      --green: #10B981;
+      --green-bg: #D2F8D2;
+      --red: #DC2626;
+      --canvas: #F4F4F0;
+      --card: #FFFFFF;
+      --border: #000000;
+      --text: #0F172A;
+      --text-light: #64748B;
+    }
+    
+    body {
+      font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--canvas);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    
+    /* Top Bar */
+    .top-bar {
+      background: var(--card);
+      border-bottom: 3px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    
+    .brand {
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--border);
+    }
+    
+    .store-btn {
+      padding: 8px 16px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+      max-width: 600px;
+    }
+    
+    .tab {
+      padding: 10px 20px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .tab.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+    }
+    
+    .status-pill .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--primary);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    
+    /* Main Layout */
+    .main-container {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 20px;
+      padding: 20px;
+      min-height: calc(100vh - 68px);
+    }
+    
+    /* Left Panel */
+    .catalog-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .search-row {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .search-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .filter-btn {
+      padding: 12px 20px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .ops-chips {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .chip {
+      padding: 6px 14px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .chip .dot-yellow { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); }
+    .chip .check-green { color: var(--green); font-weight: 700; }
+    
+    .category-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .pill {
+      padding: 8px 16px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .pill.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    
+    .menu-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 3px 3px 0 var(--border);
+    }
+    
+    .menu-card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 var(--border);
+    }
+    
+    .menu-img {
+      width: 100%;
+      height: 140px;
+      background: linear-gradient(135deg, #E0E7FF 0%, #DBEAFE 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .menu-body {
+      padding: 12px;
+    }
+    
+    .menu-cat {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-light);
+      letter-spacing: 0.5px;
+    }
+    
+    .menu-name {
+      font-weight: 700;
+      font-size: 14px;
+      margin: 4px 0;
+    }
+    
+    .menu-price {
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--primary);
+      font-family: 'JetBrains Mono', 'Chivo Mono', monospace;
+    }
+    
+    .menu-add {
+      margin-top: 8px;
+      width: 100%;
+      padding: 8px;
+      background: var(--primary);
+      color: white;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .menu-add:active {
+      transform: translate(2px, 2px);
+      box-shadow: none;
+    }
+    
+    /* Right Panel */
+    .order-panel {
+      background: var(--card);
+      border: 3px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 4px 4px 0 var(--border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-height: calc(100vh - 108px);
+      overflow-y: auto;
+      position: sticky;
+      top: 20px;
+    }
+    
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .order-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-light);
+    }
+    
+    .next-queue {
+      padding: 8px 16px;
+      background: var(--yellow);
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 900;
+      font-size: 18px;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .order-type {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .order-type-btn {
+      flex: 1;
+      padding: 10px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .order-type-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .cart-items {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    
+    .cart-item {
+      padding: 12px;
+      background: #F8FAFC;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+    }
+    
+    .cart-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    
+    .cart-item-name {
+      font-weight: 700;
+      font-size: 14px;
+    }
+    
+    .cart-item-price {
+      font-family: monospace;
+      font-weight: 700;
+    }
+    
+    .cart-item-notes {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-bottom: 8px;
+    }
+    
+    .cart-item-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .stepper button {
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--border);
+      background: var(--card);
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    
+    .stepper span {
+      font-weight: 700;
+      min-width: 24px;
+      text-align: center;
+    }
+    
+    .cart-remove {
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    
+    .cart-summary {
+      padding: 16px;
+      background: #F8FAFC;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+    }
+    
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    
+    .summary-row.total {
+      font-size: 20px;
+      font-weight: 900;
+      font-family: monospace;
+      padding-top: 12px;
+      border-top: 2px solid var(--border);
+      margin-top: 8px;
+    }
+    
+    .payment-methods {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .payment-btn {
+      flex: 1;
+      padding: 10px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .payment-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .cash-input-row {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .cash-input {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 700;
+      font-family: monospace;
+      font-size: 16px;
+    }
+    
+    .quick-cash {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .quick-cash-btn {
+      padding: 8px 12px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .change-display {
+      padding: 12px;
+      background: var(--green-bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 700;
+    }
+    
+    .btn-checkout {
+      width: 100%;
+      padding: 16px;
+      background: var(--primary);
+      color: white;
+      border: 3px solid var(--border);
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--border);
+      text-transform: uppercase;
+    }
+    
+    .btn-checkout:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    
+    .btn-checkout:active:not(:disabled) {
+      transform: translate(3px, 3px);
+      box-shadow: none;
+    }
+    
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .modal.show { display: flex; }
+    
+    .modal-content {
+      background: var(--card);
+      border: 3px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 500px;
+      box-shadow: 6px 6px 0 var(--border);
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    
+    .modal-btn {
+      flex: 1;
+      padding: 14px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--border);
+    }
+    
+    .modal-btn.primary {
+      background: var(--primary);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="brand">PAGER POS & PAGER DIGITAL</div>
+    <button class="store-btn">☕ KEDAI KOPI AKSIVA</button>
+    <div class="tabs">
+      <div class="tab active" onclick="window.location.href='/pos'">Kasir & Katalog (POS)</div>
+      <div class="tab" onclick="window.location.href='/queue'">Papan Antrean</div>
+    </div>
+    <div class="status-bar">
+      <div class="status-pill">
+        <span class="dot"></span>
+        <span>Printer Thermal: Ready [58mm]</span>
+      </div>
+      <div class="status-pill">Kasir: <strong>Budi</strong></div>
+      <div class="status-pill" id="clock">14:32</div>
+      <div class="avatar">B</div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="main-container">
+    <!-- Left: Catalog -->
+    <div class="catalog-panel">
+      <div class="search-row">
+        <input type="text" class="search-input" placeholder="Cari menu kopi, snack..." id="search">
+        <button class="filter-btn">FILTER</button>
+      </div>
+      
+      <div class="ops-chips">
+        <div class="chip"><span class="dot-yellow"></span> JAM SIBUK: 12 TRX/JAM</div>
+        <div class="chip"><span class="check-green">✓</span> Kitchen Synced</div>
+      </div>
+      
+      <div class="category-pills">
+        <div class="pill active" data-cat="all">Semua (24)</div>
+        <div class="pill" data-cat="coffee">Minuman Kopi</div>
+        <div class="pill" data-cat="non-coffee">Non-Kopi</div>
+        <div class="pill" data-cat="food">Makanan & Toast</div>
+        <div class="pill" data-cat="snack">Snack</div>
+      </div>
+      
+      <div class="menu-grid" id="menu-grid">
+        <!-- Menu items generated by JS -->
+      </div>
+    </div>
+
+    <!-- Right: Order Controller -->
+    <div class="order-panel">
+      <div class="order-header">
+        <div class="order-title">ORDER CONTROLLER / Pesanan Baru</div>
+        <div class="next-queue" id="next-queue">A001</div>
+      </div>
+      
+      <div class="order-type">
+        <button class="order-type-btn active" data-type="dine_in">Dine In (Meja)</button>
+        <button class="order-type-btn" data-type="takeaway">Takeaway (Bungkus)</button>
+      </div>
+      
+      <div id="table-input" style="display:none;">
+        <input type="text" class="search-input" placeholder="No. Meja (opsional)" id="table-no">
+      </div>
+      
+      <div style="font-size:12px; font-weight:600; color: var(--text-light);">KERANJANG</div>
+      <div class="cart-items" id="cart-items">
+        <div style="text-align:center; color: var(--text-light); padding: 40px 20px;">
+          Keranjang kosong. Pilih menu di sebelah kiri.
+        </div>
+      </div>
+      
+      <div class="cart-summary" id="cart-summary" style="display:none;">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="subtotal">Rp 0</span>
+        </div>
+        <div class="summary-row">
+          <span style="font-size:12px; color: var(--text-light);">Pajak PB1 (Included)</span>
+          <span style="font-size:12px;">-</span>
+        </div>
+        <div class="summary-row total">
+          <span>TOTAL AKHIR</span>
+          <span id="total">Rp 0</span>
+        </div>
+      </div>
+      
+      <div style="font-size:12px; font-weight:600; color: var(--text-light);">PEMBAYARAN</div>
+      <div class="payment-methods">
+        <button class="payment-btn active" data-method="cash">Tunai / Cash</button>
+        <button class="payment-btn" data-method="qris">QRIS Statis</button>
+      </div>
+      
+      <div id="cash-panel">
+        <div class="cash-input-row">
+          <input type="number" class="cash-input" placeholder="Nominal Bayar" id="cash-paid" value="">
+        </div>
+        <div class="quick-cash" style="margin-top:8px;">
+          <button class="quick-cash-btn" data-amount="exact">Pas</button>
+          <button class="quick-cash-btn" data-amount="50000">Rp 50.000</button>
+          <button class="quick-cash-btn" data-amount="100000">Rp 100.000</button>
+        </div>
+        <div class="change-display" id="change-display" style="display:none;">
+          Kembalian: <span id="change-amount">Rp 0</span>
+        </div>
+      </div>
+      
+      <button class="btn-checkout" id="btn-checkout" disabled>
+        💳 BAYAR & CETAK STRUK + PAGER
+      </button>
+      
+      <div style="font-size:11px; color: var(--text-light); text-align:center;">
+        ● Printer ESC/POS: OK (58mm) | <a href="#" style="color: var(--primary);">Test Feed</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receipt Modal -->
+  <div class="modal" id="receipt-modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-title">✅ Pembayaran Berhasil</div>
+      <div id="receipt-content" style="text-align:center; padding: 20px;"></div>
+      <div class="modal-actions">
+        <button class="modal-btn primary" onclick="closeReceiptModal()">Tutup</button>
+        <button class="modal-btn" id="open-ticket-btn">Buka Tiket</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sample menu data
+    const menuItems = [
+      { id: 1, name: 'Americano', cat: 'coffee', emoji: '☕', price: 15000 },
+      { id: 2, name: 'Latte', cat: 'coffee', emoji: '☕', price: 18000 },
+      { id: 3, name: 'Cappuccino', cat: 'coffee', emoji: '☕', price: 18000 },
+      { id: 4, name: 'Kopi Susu Aren', cat: 'coffee', emoji: '☕', price: 20000 },
+      { id: 5, name: 'Matcha Latte', cat: 'non-coffee', emoji: '🍵', price: 22000 },
+      { id: 6, name: 'Ice Lemon Tea', cat: 'non-coffee', emoji: '🍋', price: 18000 },
+      { id: 7, name: 'Toast Coklat', cat: 'food', emoji: '🍞', price: 20000 },
+      { id: 8, name: 'Nasi Goreng', cat: 'food', emoji: '🍚', price: 25000 },
+      { id: 9, name: 'Croissant Butter', cat: 'snack', emoji: '🥐', price: 15000 },
+      { id: 10, name: 'Donat Kampung', cat: 'snack', emoji: '🍩', price: 12000 }
+    ];
+    
+    let cart = [];
+    let orderType = 'dine_in';
+    let paymentMethod = 'cash';
+    let nextQueueNum = 'A001';
+    let ticketUrl = '';
+    
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+    
+    // Fetch next queue number
+    async function fetchNextQueue() {
+      const res = await fetch('/api/v1/queue/next');
+      if (res.ok) {
+        const data = await res.json();
+        nextQueueNum = data.nextQueue;
+        document.getElementById('next-queue').textContent = nextQueueNum;
+      }
+    }
+    fetchNextQueue();
+    
+    // Render menu
+    function renderMenu(filter = 'all') {
+      const grid = document.getElementById('menu-grid');
+      const filtered = filter === 'all' ? menuItems : menuItems.filter(m => m.cat === filter);
+      grid.innerHTML = filtered.map(item => `
+        <div class="menu-card" onclick="addToCart(${item.id})">
+          <div class="menu-img">${item.emoji}</div>
+          <div class="menu-body">
+            <div class="menu-cat">${item.cat}</div>
+            <div class="menu-name">${item.name}</div>
+            <div class="menu-price">Rp ${item.price.toLocaleString()}</div>
+            <button class="menu-add" onclick="event.stopPropagation(); addToCart(${item.id})">+ TAMBAH</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    renderMenu();
+    
+    // Category pills
+    document.querySelectorAll('.pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        renderMenu(pill.dataset.cat);
+      });
+    });
+    
+    // Order type
+    document.querySelectorAll('.order-type-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.order-type-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        orderType = btn.dataset.type;
+        document.getElementById('table-input').style.display = orderType === 'dine_in' ? 'block' : 'none';
+      });
+    });
+    
+    // Payment method
+    document.querySelectorAll('.payment-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        paymentMethod = btn.dataset.method;
+        document.getElementById('cash-panel').style.display = paymentMethod === 'cash' ? 'block' : 'none';
+      });
+    });
+    
+    // Add to cart
+    function addToCart(itemId) {
+      const item = menuItems.find(m => m.id === itemId);
+      if (!item) return;
+      
+      const existing = cart.find(c => c.id === itemId);
+      if (existing) {
+        existing.qty++;
+      } else {
+        cart.push({ ...item, qty: 1, notes: '' });
+      }
+      renderCart();
+    }
+    
+    // Render cart
+    function renderCart() {
+      const container = document.getElementById('cart-items');
+      if (cart.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color: var(--text-light); padding: 40px 20px;">Keranjang kosong. Pilih menu di sebelah kiri.</div>';
+        document.getElementById('cart-summary').style.display = 'none';
+        document.getElementById('btn-checkout').disabled = true;
+        return;
+      }
+      
+      container.innerHTML = cart.map((item, idx) => `
+        <div class="cart-item">
+          <div class="cart-item-row">
+            <div class="cart-item-name">${item.name}</div>
+            <div class="cart-item-price">Rp ${(item.price * item.qty).toLocaleString()}</div>
+          </div>
+          ${item.notes ? `<div class="cart-item-notes">${item.notes}</div>` : ''}
+          <div class="cart-item-controls">
+            <div class="stepper">
+              <button onclick="updateQty(${idx}, -1)">−</button>
+              <span>${item.qty}</span>
+              <button onclick="updateQty(${idx}, 1)">+</button>
+            </div>
+            <div class="cart-remove" onclick="removeFromCart(${idx})">Hapus</div>
+          </div>
+        </div>
+      `).join('');
+      
+      const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      document.getElementById('subtotal').textContent = `Rp ${subtotal.toLocaleString()}`;
+      document.getElementById('total').textContent = `Rp ${subtotal.toLocaleString()}`;
+      document.getElementById('cart-summary').style.display = 'block';
+      document.getElementById('btn-checkout').disabled = false;
+      
+      updateChange();
+    }
+    
+    function updateQty(idx, delta) {
+      cart[idx].qty += delta;
+      if (cart[idx].qty <= 0) {
+        cart.splice(idx, 1);
+      }
+      renderCart();
+    }
+    
+    function removeFromCart(idx) {
+      cart.splice(idx, 1);
+      renderCart();
+    }
+    
+    // Quick cash
+    document.querySelectorAll('.quick-cash-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const amount = btn.dataset.amount;
+        const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+        if (amount === 'exact') {
+          document.getElementById('cash-paid').value = total;
+        } else {
+          document.getElementById('cash-paid').value = parseInt(amount);
+        }
+        updateChange();
+      });
+    });
+    
+    document.getElementById('cash-paid').addEventListener('input', updateChange);
+    
+    function updateChange() {
+      const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      const paid = parseInt(document.getElementById('cash-paid').value) || 0;
+      const change = paid - total;
+      
+      if (paid >= total && paid > 0) {
+        document.getElementById('change-display').style.display = 'block';
+        document.getElementById('change-amount').textContent = `Rp ${change.toLocaleString()}`;
+      } else {
+        document.getElementById('change-display').style.display = 'none';
+      }
+    }
+    
+    // Checkout
+    document.getElementById('btn-checkout').addEventListener('click', async () => {
+      if (cart.length === 0) return;
+      
+      const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      const cashPaid = parseInt(document.getElementById('cash-paid').value) || 0;
+      
+      if (paymentMethod === 'cash' && cashPaid < total) {
+        alert('Nominal bayar kurang dari total tagihan!');
+        return;
+      }
+      
+      const items = cart.map(item => ({
+        productName: item.name,
+        quantity: item.qty,
+        unitPrice: item.price,
+        notes: item.notes
+      }));
+      
+      const tableNo = document.getElementById('table-no').value.trim();
+      
+      const res = await fetch('/api/v1/pos/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentMethod,
+          items,
+          cashPaid: paymentMethod === 'cash' ? cashPaid : total,
+          customerName: 'Pelanggan',
+          orderType,
+          tableNo
+        })
+      });
+      
+      if (!res.ok) {
+        alert('Gagal membuat pesanan');
+        return;
+      }
+      
+      const data = await res.json();
+      ticketUrl = data.ticketUrl;
+      
+      document.getElementById('receipt-content').innerHTML = `
+        <div style="font-size:48px; font-weight:900; margin:20px 0;">${data.queueNumber}</div>
+        <div style="font-size:14px; color: var(--text-light); margin-bottom:12px;">Nomor Antrean</div>
+        <div>${data.qrSvg}</div>
+        <div style="font-size:12px; color: var(--text-light); margin-top:12px;">Scan QR atau klik "Buka Tiket"</div>
+      `;
+      
+      document.getElementById('open-ticket-btn').onclick = () => {
+        window.open(ticketUrl, '_blank');
+      };
+      
+      document.getElementById('receipt-modal').classList.add('show');
+      
+      // Reset
+      cart = [];
+      renderCart();
+      document.getElementById('cash-paid').value = '';
+      document.getElementById('table-no').value = '';
+      fetchNextQueue();
+    });
+    
+    function closeReceiptModal() {
+      document.getElementById('receipt-modal').classList.remove('show');
+    }
+  </script>
+</body>
+</html>

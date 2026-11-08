@@ -1,0 +1,19 @@
+{
+  "name": "pager-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backend API & Realtime SSE for Pager Digital",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "qrcode": "^1.5.4"
+  }
+}

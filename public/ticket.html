@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tiket Pesanan - Digital Pager</title>
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --primary: #0284C7;
+      --amber-bg: #FFFBEB;
+      --amber-border: #FCD34D;
+      --amber-text: #B45309;
+      --green-bg: #ECFDF5;
+      --green-border: #6EE7B7;
+      --green-text: #047857;
+      --green-glow: rgba(16, 185, 129, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: auto 0;
+    }
+
+    /* Top bar */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      font-size: 13px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+
+    .outlet-name {
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-pill.online {
+      background: #ECFDF5;
+      color: #059669;
+    }
+
+    .status-pill.offline {
+      background: #FEF2F2;
+      color: #DC2626;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .pulse-dot {
+      animation: pulse-dot 1.5s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.3); }
+    }
+
+    /* Main Ticket Card */
+    .ticket-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      padding: 28px 20px;
+      text-align: center;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .queue-label {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .queue-number {
+      font-size: 76px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: var(--text-main);
+      margin: 8px 0 16px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Status State Variations */
+    .ticket-card.state-preparing {
+      border-color: var(--amber-border);
+      background: linear-gradient(180deg, #FFFFFF 0%, #FFFDF7 100%);
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 9999px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .badge-preparing {
+      background: var(--amber-bg);
+      color: var(--amber-text);
+      border: 1px solid var(--amber-border);
+    }
+
+    .badge-ready {
+      background: #059669;
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+    }
+
+    .badge-completed {
+      background: #F1F5F9;
+      color: #475569;
+      border: 1px solid #CBD5E1;
+    }
+
+    .status-desc {
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--text-muted);
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    /* READY State Glowing Effect */
+    .ticket-card.state-ready {
+      border-color: #10B981;
+      background: #ECFDF5;
+      animation: ready-pulse 2s infinite ease-in-out;
+    }
+
+    .ticket-card.state-ready .queue-number {
+      color: #065F46;
+    }
+
+    .ticket-card.state-ready .status-desc {
+      color: #047857;
+      font-weight: 600;
+    }
+
+    @keyframes ready-pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4), 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      }
+      50% {
+        box-shadow: 0 0 0 16px rgba(16, 185, 129, 0), 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      }
+    }
+
+    /* Sound Trigger Button */
+    .btn-sound {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: #FFFFFF;
+      color: var(--primary);
+      border: 2px dashed #BAE6FD;
+      border-radius: 16px;
+      padding: 14px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-sound:active {
+      transform: scale(0.98);
+      background: #F0F9FF;
+    }
+
+    .btn-sound.active {
+      background: #F0FDF4;
+      border: 2px solid #86EFAC;
+      color: #15803D;
+      cursor: default;
+    }
+
+    /* Order Details Accordion */
+    .order-box {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 13px;
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .order-summary-text {
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      padding: 4px;
+    }
+
+    /* Modal / Alert for Call */
+    .call-banner {
+      display: none;
+      background: #047857;
+      color: #FFFFFF;
+      padding: 12px 16px;
+      border-radius: 16px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 15px;
+      box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
+      animation: bounce 0.6s;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="outlet-name">
+        <span>☕</span>
+        <span id="outlet-name">Memuat...</span>
+      </div>
+      <div id="conn-status" class="status-pill online">
+        <span class="dot pulse-dot"></span>
+        <span id="conn-text">Terhubung</span>
+      </div>
+    </div>
+
+    <!-- Alert Banner when ready -->
+    <div id="call-banner" class="call-banner">
+      🔔 PESANAN ANDA SIAP DIAMBIL!
+    </div>
+
+    <!-- Main Ticket Card -->
+    <div id="ticket-card" class="ticket-card state-preparing">
+      <div class="queue-label">Nomor Antrean Anda</div>
+      <div id="queue-number" class="queue-number">---</div>
+      
+      <div id="status-badge" class="badge-status badge-preparing">
+        <span>⏳</span>
+        <span id="status-badge-text">Sedang Disiapkan</span>
+      </div>
+
+      <p id="status-desc" class="status-desc">
+        Pesanan Anda sedang dipersiapkan oleh tim barista / dapur. Mohon menunggu sejenak.
+      </p>
+    </div>
+
+    <!-- Sound enabler button -->
+    <button id="btn-sound" class="btn-sound" type="button">
+      <span id="sound-icon">🔔</span>
+      <span id="sound-label">Aktifkan Notifikasi Suara (Opsional)</span>
+    </button>
+
+    <!-- Order Items Summary -->
+    <div class="order-box">
+      <div class="order-header">
+        <span>Rincian Pesanan</span>
+        <span id="order-no">TRX-...</span>
+      </div>
+      <div id="items-summary" class="order-summary-text">
+        Memuat detail pesanan...
+      </div>
+    </div>
+
+    <div class="footer-note">
+      💡 <strong>Tips:</strong> Biarkan halaman browser ini tetap terbuka agar Anda tidak melewatkan nada panggilan ketika pesanan siap.
+    </div>
+  </div>
+
+  <script>
+    // --- STATE & UTILS ---
+    const token = window.location.pathname.split('/').pop();
+    let currentTicket = null;
+    let audioUnlocked = false;
+    let audioCtx = null;
+    let lastCallCount = 0;
+
+    const elOutletName = document.getElementById('outlet-name');
+    const elConnStatus = document.getElementById('conn-status');
+    const elConnText = document.getElementById('conn-text');
+    const elTicketCard = document.getElementById('ticket-card');
+    const elQueueNumber = document.getElementById('queue-number');
+    const elStatusBadge = document.getElementById('status-badge');
+    const elStatusBadgeText = document.getElementById('status-badge-text');
+    const elStatusDesc = document.getElementById('status-desc');
+    const elCallBanner = document.getElementById('call-banner');
+    const elBtnSound = document.getElementById('btn-sound');
+    const elSoundLabel = document.getElementById('sound-label');
+    const elOrderNo = document.getElementById('order-no');
+    const elItemsSummary = document.getElementById('items-summary');
+
+    // --- WEB AUDIO API CHIME ---
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // Play pleasant 2-tone doorbell chime: G5 (784Hz) -> C6 (1046.5Hz)
+    function playChime() {
+      if (!audioCtx || audioCtx.state !== 'running') return;
+      try {
+        const now = audioCtx.currentTime;
+
+        // Tone 1: 784 Hz
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(784, now);
+        gain1.gain.setValueAtTime(0.3, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.35);
+
+        // Tone 2: 1046.5 Hz (starts 0.15s later)
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(1046.5, now + 0.18);
+        gain2.gain.setValueAtTime(0.35, now + 0.18);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(now + 0.18);
+        osc2.stop(now + 0.65);
+      } catch (err) {
+        console.warn('Audio chime playback failed:', err);
+      }
+    }
+
+    // Test soft click beep
+    function playTestBeep() {
+      if (!audioCtx || audioCtx.state !== 'running') return;
+      try {
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.12);
+      } catch (e) {}
+    }
+
+    // Unlock sound button handler
+    elBtnSound.addEventListener('click', () => {
+      initAudio();
+      if (audioCtx) {
+        audioUnlocked = true;
+        playTestBeep();
+        elBtnSound.classList.add('active');
+        elSoundLabel.textContent = '✓ Suara Notifikasi Aktif';
+      }
+    });
+
+    // --- UI RENDER BASED ON TICKET STATE ---
+    function renderTicket(ticket) {
+      currentTicket = ticket;
+      elOutletName.textContent = ticket.outletName || 'Kedai Kopi Aksiva';
+      elQueueNumber.textContent = ticket.queueNumber || '---';
+      elOrderNo.textContent = ticket.orderNo || '';
+      elItemsSummary.textContent = ticket.itemsSummary || '1x Pesanan Reguler';
+
+      // Reset classes
+      elTicketCard.classList.remove('state-preparing', 'state-ready', 'state-completed');
+      elStatusBadge.classList.remove('badge-preparing', 'badge-ready', 'badge-completed');
+
+      if (ticket.status === 'ready') {
+        elTicketCard.classList.add('state-ready');
+        elStatusBadge.classList.add('badge-ready');
+        elStatusBadge.innerHTML = '<span>🔔</span><span id="status-badge-text">PESANAN SIAP!</span>';
+        elStatusDesc.textContent = 'Pesanan Anda sudah siap! Silakan menuju konter dan tunjukkan nomor ' + ticket.queueNumber + ' ke kasir.';
+        elCallBanner.style.display = 'block';
+        document.title = '🔔 PESANAN SIAP! (' + ticket.queueNumber + ')';
+
+        // Trigger notification if newly called
+        if (ticket.callCount > lastCallCount) {
+          lastCallCount = ticket.callCount;
+          if (audioUnlocked) {
+            playChime();
+            setTimeout(playChime, 800);
+          }
+          if ('vibrate' in navigator) {
+            try { navigator.vibrate([400, 200, 400]); } catch (e) {}
+          }
+        }
+      } else if (ticket.status === 'completed') {
+        elTicketCard.classList.add('state-completed');
+        elStatusBadge.classList.add('badge-completed');
+        elStatusBadge.innerHTML = '<span>✓</span><span id="status-badge-text">Sudah Diambil</span>';
+        elStatusDesc.textContent = 'Pesanan telah diserahkan. Terima kasih telah memesan, selamat menikmati!';
+        elCallBanner.style.display = 'none';
+        document.title = 'Selesai - Tiket ' + ticket.queueNumber;
+      } else {
+        // Preparing
+        elTicketCard.classList.add('state-preparing');
+        elStatusBadge.classList.add('badge-preparing');
+        elStatusBadge.innerHTML = '<span>⏳</span><span id="status-badge-text">Sedang Disiapkan</span>';
+        elStatusDesc.textContent = 'Pesanan Anda sedang dipersiapkan oleh tim barista / dapur. Mohon menunggu sejenak.';
+        elCallBanner.style.display = 'none';
+        document.title = 'Antrean ' + ticket.queueNumber + ' - Disiapkan';
+      }
+    }
+
+    // --- FETCH INITIAL TICKET ---
+    async function loadTicketSnapshot() {
+      try {
+        const res = await fetch('/api/v1/tickets/' + token);
+        if (res.ok) {
+          const data = await res.json();
+          renderTicket(data.ticket);
+        } else {
+          elStatusDesc.textContent = 'Tiket antrean tidak ditemukan atau link sudah tidak berlaku.';
+        }
+      } catch (err) {
+        console.warn('Gagal memuat tiket:', err);
+      }
+    }
+
+    // --- REALTIME SSE CONNECTION ---
+    let eventSource = null;
+    function connectSSE() {
+      if (eventSource) {
+        eventSource.close();
+      }
+
+      eventSource = new EventSource('/api/v1/tickets/' + token + '/stream');
+
+      eventSource.addEventListener('ticket_sync', (e) => {
+        setConnectionState(true);
+        const data = JSON.parse(e.data);
+        renderTicket(data);
+      });
+
+      eventSource.addEventListener('ticket_update', (e) => {
+        setConnectionState(true);
+        const data = JSON.parse(e.data);
+        renderTicket(data);
+      });
+
+      eventSource.onopen = () => {
+        setConnectionState(true);
+      };
+
+      eventSource.onerror = () => {
+        setConnectionState(false);
+      };
+    }
+
+    function setConnectionState(isOnline) {
+      if (isOnline) {
+        elConnStatus.className = 'status-pill online';
+        elConnText.textContent = 'Terhubung';
+      } else {
+        elConnStatus.className = 'status-pill offline';
+        elConnText.textContent = 'Menghubungkan...';
+      }
+    }
+
+    // Resync when tab becomes visible again
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        loadTicketSnapshot();
+      }
+    });
+
+    window.addEventListener('pageshow', () => {
+      loadTicketSnapshot();
+    });
+
+    // Start
+    loadTicketSnapshot();
+    connectSSE();
+  </script>
+</body>
+</html>
