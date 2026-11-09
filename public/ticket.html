@@ -25,7 +25,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px 16px;
+      padding: 16px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
@@ -34,7 +34,7 @@
       max-width: 440px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
       margin: auto 0;
     }
 
@@ -64,9 +64,9 @@
     }
     .demo-btn {
       flex: 1;
-      padding: 6px 8px;
+      padding: 8px 6px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 800;
       border: 2px solid var(--border-black);
       background: #FFFFFF;
       color: var(--text-black);
@@ -105,17 +105,17 @@
       background: var(--card-white);
       border: 3px solid var(--border-black);
       box-shadow: 5px 5px 0 var(--border-black);
-      padding: 22px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
     }
 
     /* Queue Number Box (Figma Yellow Box) */
     .queue-number-box {
       background: var(--primary-yellow);
       border: 3px solid var(--border-black);
-      padding: 24px 16px;
+      padding: 22px 14px;
       text-align: center;
       box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
     }
@@ -128,12 +128,12 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
     }
     .queue-subtitle {
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 800;
       color: var(--text-black);
       margin-top: 8px;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
     }
 
     /* Status Bar */
@@ -142,33 +142,37 @@
       border: 3px solid var(--border-black);
       padding: 12px 14px;
       color: #FFFFFF;
-      font-weight: 700;
+      font-weight: 800;
       font-size: 15px;
       text-align: center;
       letter-spacing: 0.02em;
     }
     .status-bar.ready {
       background: var(--green-ready);
+      color: #FFFFFF;
     }
     .status-bar.completed {
       background: var(--text-gray);
+      color: #FFFFFF;
     }
 
-    /* Ready Banner */
+    /* Ready Banner (Blinking Alert) */
     .ready-banner {
       background: var(--green-ready);
       border: 3px solid var(--border-black);
+      box-shadow: 3px 3px 0 var(--border-black);
       padding: 16px;
       text-align: center;
       color: #FFFFFF;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 900;
-      letter-spacing: 0.02em;
-      animation: pulse-ready 1.8s infinite;
+      letter-spacing: 0.03em;
+      animation: pulse-ready 1.4s infinite;
+      cursor: pointer;
     }
     @keyframes pulse-ready {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.02); }
+      0%, 100% { transform: scale(1); background: #10B981; }
+      50% { transform: scale(1.02); background: #059669; }
     }
 
     /* Order Items */
@@ -193,12 +197,12 @@
     }
     .item-name {
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--text-black);
     }
     .item-price {
       font-size: 15px;
-      font-weight: 800;
+      font-weight: 900;
       color: var(--text-black);
       white-space: nowrap;
     }
@@ -219,7 +223,7 @@
       border: 1px solid var(--border-black);
       padding: 2px 7px;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       font-family: monospace;
     }
 
@@ -244,20 +248,20 @@
       letter-spacing: 0.05em;
     }
     .total-amount {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 900;
       color: var(--text-black);
     }
 
-    /* Notification Button */
+    /* Notification / Audio Button */
     .notification-btn {
-      background: var(--primary-blue);
+      background: var(--primary-yellow);
       border: 3px solid var(--border-black);
       box-shadow: 4px 4px 0 var(--border-black);
-      color: #FFFFFF;
+      color: var(--text-black);
       padding: 16px 20px;
       font-size: 15px;
-      font-weight: 800;
+      font-weight: 900;
       text-align: center;
       cursor: pointer;
       display: flex;
@@ -266,17 +270,40 @@
       gap: 10px;
       transition: all 0.1s;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.03em;
+      user-select: none;
     }
     .notification-btn:active {
       transform: translate(2px, 2px);
       box-shadow: 2px 2px 0 var(--border-black);
     }
     .notification-btn.active {
-      background: var(--green-ready);
+      background: #FFFFFF;
+      color: var(--text-black);
+      border-color: var(--border-black);
     }
     .bell-icon {
-      font-size: 18px;
+      font-size: 20px;
+      display: inline-block;
+      animation: bell-swing 2s infinite ease-in-out;
+    }
+    .notification-btn.active .bell-icon {
+      animation: none;
+    }
+    @keyframes bell-swing {
+      0%, 100% { transform: rotate(0); }
+      20% { transform: rotate(15deg); }
+      40% { transform: rotate(-15deg); }
+      60% { transform: rotate(10deg); }
+      80% { transform: rotate(-10deg); }
+    }
+
+    /* Audio visual indicator bar */
+    .sound-hint {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-gray);
+      font-weight: 600;
     }
 
     /* Footer */
@@ -284,7 +311,7 @@
       text-align: center;
       font-size: 11px;
       color: var(--text-gray);
-      font-weight: 500;
+      font-weight: 600;
       margin-top: 4px;
     }
 
@@ -294,12 +321,15 @@
   </style>
 </head>
 <body>
+  <!-- Preloaded Audio Elements for maximum browser compatibility -->
+  <audio id="pager-audio" src="/chime.mp3" preload="auto" playsinline></audio>
+
   <div class="container">
     <!-- Demo / Simulation Switcher (visible in demo mode) -->
     <div id="demo-bar" class="demo-bar hidden">
       <div class="demo-bar-title">
         <span>🎨 Pratinjau Desain Figma (Pelanggan)</span>
-        <span style="font-size:10px; color:#1E60EC;">Simulasi</span>
+        <span style="font-size:10px; color:#1E60EC; font-weight:800;">Simulasi</span>
       </div>
       <div class="demo-actions">
         <button class="demo-btn active" id="demo-prep" onclick="setDemoState('preparing')">⏳ Menyiapkan</button>
@@ -327,8 +357,8 @@
       </div>
 
       <!-- Ready Banner -->
-      <div id="ready-banner" class="ready-banner hidden">
-        🔔 PESANAN SIAP DIAMBIL!
+      <div id="ready-banner" class="ready-banner hidden" onclick="triggerPagerAlert()">
+        🔔 PESANAN SIAP DIAMBIL! (KLIK)
       </div>
 
       <!-- Order Items -->
@@ -344,10 +374,11 @@
     </div>
 
     <!-- Notification Button -->
-    <button id="btn-notification" class="notification-btn">
-      <span class="bell-icon">🔔</span>
-      <span id="btn-text">HIDUPKAN NOTIFIKASI SUARA</span>
+    <button id="btn-notification" class="notification-btn" onclick="handleSoundButtonClick()">
+      <span class="bell-icon" id="bell-icon">🔔</span>
+      <span id="btn-text">🔔 KLIK DI SINI: AKTIFKAN & TES SUARA PAGER</span>
     </button>
+    <div id="sound-hint" class="sound-hint" style="color:#DC2626; font-weight:700;">⚠️ Klik tombol kuning di atas agar browser mengizinkan suara + pastikan HP tidak di-silent</div>
 
     <!-- Footer -->
     <div class="footer">
@@ -356,6 +387,7 @@
   </div>
 
   <script>
+    // URL parsing: support /t/:token or direct /pelanggan /ticket
     const urlPath = window.location.pathname;
     let token = '';
     if (urlPath.includes('/t/')) {
@@ -377,11 +409,13 @@
 
     let ticket = null;
     let lastCallCount = 0;
-    let audioCtx = null;
     let audioUnlocked = false;
+    let audioCtx = null;
     let eventSource = null;
-    let isDemo = false;
+    let reminderTimer = null;
 
+    // Elements
+    const audioEl = document.getElementById('pager-audio');
     const demoBar = document.getElementById('demo-bar');
     const connectionStatus = document.getElementById('connection-status');
     const queueNumber = document.getElementById('queue-number');
@@ -391,39 +425,170 @@
     const totalAmount = document.getElementById('total-amount');
     const btnNotification = document.getElementById('btn-notification');
     const btnText = document.getElementById('btn-text');
+    const bellIcon = document.getElementById('bell-icon');
+    const soundHint = document.getElementById('sound-hint');
 
     function formatRupiah(amount) {
       return 'Rp ' + (amount || 0).toLocaleString('id-ID');
     }
 
-    function playChime() {
-      if (!audioUnlocked || !audioCtx) return;
+    // ==========================================
+    // AUDIO ENGINE (Web Audio API + Audio File Fallback)
+    // ==========================================
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    // Synthesize rich dual-tone pager chime
+    function synthesizePagerChime() {
+      const ctx = getAudioContext();
+      if (!ctx) return;
       try {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.frequency.value = 880;
-        osc.type = 'sine';
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        osc.start(audioCtx.currentTime);
-        osc.stop(audioCtx.currentTime + 0.2);
+        const now = ctx.currentTime;
+        function ringTone(freq, startOffset, duration, vol) {
+          // Fundamental sine wave
+          const osc1 = ctx.createOscillator();
+          const gain1 = ctx.createGain();
+          osc1.type = 'sine';
+          osc1.frequency.setValueAtTime(freq, now + startOffset);
+          gain1.gain.setValueAtTime(vol * 0.7, now + startOffset);
+          gain1.gain.exponentialRampToValueAtTime(0.001, now + startOffset + duration);
+          osc1.connect(gain1);
+          gain1.connect(ctx.destination);
+          osc1.start(now + startOffset);
+          osc1.stop(now + startOffset + duration);
+
+          // Harmonic triangle overtone (bright bell ring)
+          const osc2 = ctx.createOscillator();
+          const gain2 = ctx.createGain();
+          osc2.type = 'triangle';
+          osc2.frequency.setValueAtTime(freq * 2, now + startOffset);
+          gain2.gain.setValueAtTime(vol * 0.3, now + startOffset);
+          gain2.gain.exponentialRampToValueAtTime(0.001, now + startOffset + (duration * 0.7));
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+          osc2.start(now + startOffset);
+          osc2.stop(now + startOffset + duration);
+        }
+
+        // Phrase 1: Ding (880Hz A5) -> Dong (1174Hz D6)
+        ringTone(880, 0.00, 0.35, 0.85);
+        ringTone(1174.66, 0.18, 0.45, 0.95);
+
+        // Phrase 2: Ding -> Dong (repeat after 0.6s)
+        ringTone(880, 0.65, 0.35, 0.85);
+        ringTone(1174.66, 0.83, 0.55, 0.95);
       } catch (err) {
-        console.error('Chime error:', err);
+        console.warn('Web Audio synthesis error:', err);
       }
     }
 
-    function vibrate() {
+    // Play chime via Audio element or Web Audio synthesizer
+    function playPagerChime() {
+      let played = false;
+
+      // 1. Try HTML5 Audio element (/chime.wav)
+      if (audioEl) {
+        try {
+          audioEl.currentTime = 0;
+          const promise = audioEl.play();
+          if (promise !== undefined) {
+            promise.then(() => {
+              played = true;
+            }).catch(e => {
+              console.warn('Audio tag play blocked/failed, using synthesizer:', e);
+              synthesizePagerChime();
+            });
+          }
+        } catch(e) {
+          synthesizePagerChime();
+        }
+      }
+
+      // 2. Also run synthesizer for maximum presence & volume
+      synthesizePagerChime();
+
+      // 3. Vibration
       if ('vibrate' in navigator) {
-        try { navigator.vibrate([200, 100, 200]); } catch(e) {}
+        try {
+          navigator.vibrate([300, 150, 300, 150, 500]);
+        } catch(e) {}
       }
     }
 
+    // Unlock audio on ANY user touch/click on page
+    function unlockAudio() {
+      if (audioUnlocked) return;
+      audioUnlocked = true;
+
+      // Warm up Web Audio
+      const ctx = getAudioContext();
+      if (ctx) {
+        try {
+          const buffer = ctx.createBuffer(1, 1, 22050);
+          const source = ctx.createBufferSource();
+          source.buffer = buffer;
+          source.connect(ctx.destination);
+          source.start(0);
+        } catch(e) {}
+      }
+
+      // Warm up HTML5 Audio
+      if (audioEl) {
+        audioEl.play().then(() => {
+          audioEl.pause();
+          audioEl.currentTime = 0;
+        }).catch(() => {});
+      }
+
+      // Update button UI
+      btnNotification.classList.add('active');
+      btnText.textContent = '🔊 SUARA AKTIF • KLIK UNTUK TES';
+      bellIcon.textContent = '🔊';
+      soundHint.textContent = '✅ Notifikasi suara sudah aktif. Klik tombol untuk tes dengar bunyi pager.';
+    }
+
+    // Button handler: unlock & play sound immediately for testing
+    window.handleSoundButtonClick = function() {
+      unlockAudio();
+      playPagerChime();
+    };
+
+    // Ready banner click handler
+    window.triggerPagerAlert = function() {
+      unlockAudio();
+      playPagerChime();
+    };
+
+    // Auto unlock on first user gesture anywhere on screen
+    ['click', 'touchstart', 'pointerdown', 'keydown'].forEach(evt => {
+      document.addEventListener(evt, () => {
+        unlockAudio();
+      }, { once: true, passive: true });
+    });
+
+    // ==========================================
+    // TICKET RENDERING
+    // ==========================================
     function renderTicket(data) {
       ticket = data;
       queueNumber.textContent = ticket.queueNumber || 'A001';
       statusBar.classList.remove('ready', 'completed');
+
+      // Clear reminder if status is not ready
+      if (ticket.status !== 'ready' && reminderTimer) {
+        clearInterval(reminderTimer);
+        reminderTimer = null;
+      }
 
       if (ticket.status === 'preparing') {
         statusBar.textContent = ticket.orderType === 'dine_in'
@@ -434,10 +599,17 @@
         statusBar.classList.add('ready');
         statusBar.textContent = '✅ SIAP DI PICK-UP BAR';
         readyBanner.classList.remove('hidden');
-        if (ticket.callCount > lastCallCount) {
-          playChime();
-          vibrate();
-          lastCallCount = ticket.callCount;
+
+        // Play chime whenever called or entering ready state
+        playPagerChime();
+
+        // Start repeating reminder every 15s if customer hasn't taken it
+        if (!reminderTimer) {
+          reminderTimer = setInterval(() => {
+            if (ticket && ticket.status === 'ready') {
+              playPagerChime();
+            }
+          }, 15000);
         }
       } else if (ticket.status === 'completed') {
         statusBar.classList.add('completed');
@@ -470,7 +642,13 @@
       totalAmount.textContent = formatRupiah(ticket.totalAmount || 0);
     }
 
+    // ==========================================
+    // DEMO / SIMULATION SWITCHER
+    // ==========================================
     window.setDemoState = function(state) {
+      // User gesture: unlock audio immediately
+      unlockAudio();
+
       document.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
       if (state === 'preparing') {
         document.getElementById('demo-prep').classList.add('active');
@@ -487,13 +665,15 @@
     };
 
     function startDemoMode(notice) {
-      isDemo = true;
       demoBar.classList.remove('hidden');
       connectionStatus.textContent = notice || '🎨 Mode Pratinjau Desain Figma (Interaktif)';
       connectionStatus.className = 'connection-status demo';
       renderTicket(DEMO_TICKET);
     }
 
+    // ==========================================
+    // REALTIME SSE CONNECTION
+    // ==========================================
     function connectSSE() {
       if (!token) return;
       eventSource = new EventSource(`/api/v1/tickets/${token}/stream`);
@@ -513,18 +693,7 @@
       };
     }
 
-    btnNotification.addEventListener('click', () => {
-      if (!audioUnlocked) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        audioUnlocked = true;
-        playChime();
-        btnNotification.classList.add('active');
-        btnText.textContent = '✅ NOTIFIKASI SUARA AKTIF';
-      } else {
-        playChime();
-      }
-    });
-
+    // Initialization
     if (!token) {
       startDemoMode('🎨 Mode Pratinjau Desain Figma (Interaktif)');
     } else {
@@ -550,6 +719,7 @@
 
     window.addEventListener('beforeunload', () => {
       if (eventSource) eventSource.close();
+      if (reminderTimer) clearInterval(reminderTimer);
     });
   </script>
 </body>

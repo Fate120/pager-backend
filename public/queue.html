@@ -837,6 +837,7 @@
     
     async function confirmCall() {
       if (!pendingTicketId) return;
+      testChime();
       const res = await fetch(`/api/v1/queue/${pendingTicketId}/call`, { method: 'POST' });
       if (res.ok) {
         closeModal();
@@ -847,6 +848,7 @@
     }
     
     async function recall(ticketId) {
+      testChime();
       const res = await fetch(`/api/v1/queue/${ticketId}/recall`, { method: 'POST' });
       if (res.ok) fetchQueue();
       else alert('Gagal memanggil ulang');
