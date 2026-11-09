@@ -129,8 +129,9 @@ app.post('/api/v1/queue/:ticketId/call', (req, res) => {
     return res.status(404).json({ error: 'Tiket antrean tidak ditemukan' });
   }
 
-  // Broadcast to customer ticket
+  // Broadcast to customer ticket (support both ticket_update and ticket:update)
   broadcastToTicket(ticket.token, 'ticket_update', ticket);
+  broadcastToTicket(ticket.token, 'ticket:update', ticket);
   // Broadcast to staff
   broadcastToStaff('ticket_updated', { ticket, action: 'call' });
 
@@ -146,12 +147,13 @@ app.post('/api/v1/queue/:ticketId/recall', (req, res) => {
   }
 
   broadcastToTicket(ticket.token, 'ticket_update', ticket);
+  broadcastToTicket(ticket.token, 'ticket:update', ticket);
   broadcastToStaff('ticket_updated', { ticket, action: 'recall' });
 
   res.json({ success: true, ticket });
 });
 
-// 6. Complete Ticket
+// 7. Complete Ticket
 app.post('/api/v1/queue/:ticketId/complete', (req, res) => {
   const { ticketId } = req.params;
   const ticket = store.completeTicket(ticketId);
@@ -160,6 +162,7 @@ app.post('/api/v1/queue/:ticketId/complete', (req, res) => {
   }
 
   broadcastToTicket(ticket.token, 'ticket_update', ticket);
+  broadcastToTicket(ticket.token, 'ticket:update', ticket);
   broadcastToStaff('ticket_updated', { ticket, action: 'complete' });
 
   res.json({ success: true, ticket });

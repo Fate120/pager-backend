@@ -672,40 +672,103 @@
     }
 
     // ==========================================
-    // REALTIME SSE CONNECTION
+    // REALTIME SSE CONNECTION & POLLING BACKUP
     // ==========================================
-    function connectSSE() {
-      if (!token) return;
-      eventSource = new EventSource(`/api/v1/tickets/${token}/stream`);
-      eventSource.addEventListener('ticket:update', (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          renderTicket(data);
-          connectionStatus.textContent = '🟢 Terhubung Real-Time';
-          connectionStatus.className = 'connection-status';
-        } catch(err) {
-          console.error(err);
-        }
-      });
-      eventSource.onerror = () => {
-        connectionStatus.textContent = '🔴 Terputus - Menghubungkan ulang...';
-        connectionStatus.className = 'connection-status offline';
-      };
+    let pollTimer = null;
+
+    function handleTicketData(newTicket) {
+      if (!newTicket) return;
+      const prevStatus = ticket ? ticket.status : null;
+      const prevCallCount = lastCallCount || 0;
+      const newCallCount = newTicket.callCount || 0;
+
+      // Detect if cashier called the order
+      const isCallTriggered = (
+        (newTicket.status === 'ready' && prevStatus !== 'ready') ||
+        (newTicket.status === 'ready' && newCallCount > prevCallCount)
+      );
+
+      lastCallCount = newCallCount;
+      renderTicket(newTicket);
+
+      if (isCallTriggered) {
+        console.log('🔔 Staff called ticket! Triggering chime & alerts...');
+        playPagerChime();
+      }
     }
 
-    // Initialization
-    if (!token) {
-      startDemoMode('🎨 Mode Pratinjau Desain Figma (Interaktif)');
-    } else {
-      fetch(`/api/v1/tickets/${token}`)
+    function startPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(async () => {
+        if (!token) return;
+        try {
+          const res = await fetch(`/api/v1/tickets/${token}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.ticket) {
+              handleTicketData(data.ticket);
+            }
+          }
+        } catch(e) {
+          // ignore network glitch
+        }
+      }, 2500);
+    }
+
+    function connectSSE() {
+      if (!token) return;
+      if (eventSource) {
+        try { eventSource.close(); } catch(e) {}
+      }
+
+      try {
+        eventSource = new EventSource(`/api/v1/tickets/${token}/stream`);
+
+        const handleIncoming = (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            handleTicketData(data);
+            connectionStatus.textContent = '🟢 Terhubung Real-Time (Live)';
+            connectionStatus.className = 'connection-status';
+          } catch(err) {
+            console.error('SSE JSON error:', err);
+          }
+        };
+
+        // Support both underscore and colon SSE event formats
+        eventSource.addEventListener('ticket_update', handleIncoming);
+        eventSource.addEventListener('ticket:update', handleIncoming);
+        eventSource.addEventListener('ticket_sync', handleIncoming);
+        eventSource.onmessage = handleIncoming;
+
+        eventSource.onopen = () => {
+          connectionStatus.textContent = '🟢 Terhubung Real-Time (Live)';
+          connectionStatus.className = 'connection-status';
+        };
+
+        eventSource.onerror = () => {
+          connectionStatus.textContent = '🟡 Mode Backup Polling Aktif';
+          connectionStatus.className = 'connection-status';
+        };
+      } catch(err) {
+        console.warn('SSE not supported or blocked, relying on polling:', err);
+      }
+
+      startPolling();
+    }
+
+    function loadLiveTicket(tkn) {
+      demoBar.classList.add('hidden');
+      fetch(`/api/v1/tickets/${tkn}`)
         .then(res => {
           if (!res.ok) throw new Error('Not found');
           return res.json();
         })
         .then(data => {
           if (data && data.ticket) {
-            renderTicket(data.ticket);
+            token = tkn;
             lastCallCount = data.ticket.callCount || 0;
+            renderTicket(data.ticket);
             connectSSE();
           } else {
             startDemoMode('⚠️ Tiket Selesai / Kadaluarsa • Menampilkan Pratinjau');
@@ -716,6 +779,61 @@
           startDemoMode('⚠️ Tiket Tidak Ditemukan • Menampilkan Pratinjau Figma');
         });
     }
+
+    // Re-check state when mobile screen unlocks or browser tab regains focus
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && token) {
+        fetch(`/api/v1/tickets/${token}`)
+          .then(r => r.json())
+          .then(d => { if (d && d.ticket) handleTicketData(d.ticket); })
+          .catch(() => {});
+        if (!eventSource || eventSource.readyState === EventSource.CLOSED) {
+          connectSSE();
+        }
+      }
+    });
+
+    // Auto-detect token from URL or find latest active order
+    async function initPage() {
+      // 1. Check if token in URL
+      const path = window.location.pathname;
+      const params = new URLSearchParams(window.location.search);
+      let foundToken = params.get('token') || params.get('t');
+
+      if (!foundToken && path.includes('/t/')) {
+        foundToken = path.split('/t/')[1].split('/')[0].split('?')[0].trim();
+      }
+
+      if (foundToken) {
+        token = foundToken;
+        loadLiveTicket(token);
+        return;
+      }
+
+      // 2. If no token in URL, check if there is an active order in store
+      try {
+        const res = await fetch('/api/v1/queue/active');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.activeTickets && data.activeTickets.length > 0) {
+            // Pick newest active ticket
+            const newest = data.activeTickets[data.activeTickets.length - 1];
+            token = newest.token;
+            console.log('Auto-connected to latest active ticket:', token, newest.queueNumber);
+            window.history.replaceState({}, '', `/t/${token}`);
+            loadLiveTicket(token);
+            return;
+          }
+        }
+      } catch(e) {
+        console.warn('Auto-find active ticket failed:', e);
+      }
+
+      // 3. Fallback to interactive demo mode
+      startDemoMode('🎨 Mode Pratinjau Desain Figma (Interaktif)');
+    }
+
+    initPage();
 
     window.addEventListener('beforeunload', () => {
       if (eventSource) eventSource.close();

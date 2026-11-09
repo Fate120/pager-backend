@@ -703,9 +703,12 @@
     <div class="modal-content" style="max-width: 400px;">
       <div class="modal-title">✅ Pembayaran Berhasil</div>
       <div id="receipt-content" style="text-align:center; padding: 20px;"></div>
-      <div class="modal-actions">
-        <button class="modal-btn primary" onclick="closeReceiptModal()">Tutup</button>
-        <button class="modal-btn" id="open-ticket-btn">Buka Tiket</button>
+      <div class="modal-actions" style="display:flex; flex-direction:column; gap:8px;">
+        <button class="modal-btn" id="call-direct-btn" style="background:var(--accent); color:#ffffff; font-weight:800; font-size:15px; width:100%;">📢 Panggil Pelanggan Sekarang</button>
+        <div style="display:flex; gap:8px; width:100%;">
+          <button class="modal-btn" id="open-ticket-btn" style="flex:1;">👁️ Buka Tiket</button>
+          <button class="modal-btn primary" onclick="closeReceiptModal()" style="flex:1;">Tutup</button>
+        </div>
       </div>
     </div>
   </div>
@@ -941,6 +944,28 @@
       
       document.getElementById('open-ticket-btn').onclick = () => {
         window.open(ticketUrl, '_blank');
+      };
+
+      const callDirectBtn = document.getElementById('call-direct-btn');
+      callDirectBtn.textContent = '📢 Panggil Pelanggan Sekarang';
+      callDirectBtn.disabled = false;
+      callDirectBtn.onclick = async () => {
+        callDirectBtn.disabled = true;
+        callDirectBtn.textContent = '⏳ Memanggil...';
+        try {
+          const callRes = await fetch(`/api/v1/queue/${data.ticketId}/call`, { method: 'POST' });
+          if (callRes.ok) {
+            callDirectBtn.textContent = '✅ Berhasil Dipanggil!';
+            callDirectBtn.style.background = '#0A2847';
+          } else {
+            alert('Gagal memanggil antrean');
+            callDirectBtn.disabled = false;
+            callDirectBtn.textContent = '📢 Panggil Pelanggan Sekarang';
+          }
+        } catch(e) {
+          alert('Error: ' + e.message);
+          callDirectBtn.disabled = false;
+        }
       };
       
       document.getElementById('receipt-modal').classList.add('show');
