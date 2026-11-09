@@ -44,16 +44,23 @@ PORT=3100  # Default port
 - `GET /api/v1/staff/stream` - Staff queue board updates
 
 ### Pages
-- `GET /` or `/pos` - POS Cashier interface
+- `GET /` or `/pos` - POS Cashier interface (Neo-Brutalist)
 - `GET /queue` - Queue board for kitchen/bar staff
-- `GET /t/:token` - Customer ticket page
+- `GET /pelanggan` or `/ticket` - Pratinjau tiket pelanggan (Figma Neo-Brutalist)
+- `GET /t/:token` - Live customer ticket with SSE stream
 - `GET /sim` - Legacy simulator
 
-## Deploy to Render
+## Deployment (Railway)
 
-1. Push code to GitHub
-2. Connect Render to repository
-3. Set build command: `npm install`
-4. Set start command: `npm start`
-5. Environment: `Node`
-6. Instance type: `Web Service`
+1. Push code ke GitHub (`Fate120/pager-backend`)
+2. Railway otomatis mendeteksi dan melakukan build / deploy
+3. Generate domain di Settings → Networking → Public Networking
+4. Akses `https://[domain].up.railway.app/pelanggan` atau `/pos`
+
+## Dokumentasi & Spesifikasi Desain
+Dokumentasi lengkap PRD, Arsitektur, dan referensi Figma tersimpan di direktori `docs/`:
+- `docs/01-PRD.md` - Product Requirements Document
+- `docs/02-ARCHITECTURE.md` - Technical Architecture
+- `docs/design/FIGMA_SPEC.md` - Neo-Brutalist Design Tokens & Specifications
+- `docs/QUICKSTART.md` - Panduan cepat instalasi & pengujian lokal
+- `docs/DEPLOY.md` - Panduan deployment cloud
