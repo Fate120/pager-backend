@@ -245,18 +245,14 @@ app.get('/queue', (req, res) => {
   res.sendFile(join(__dirname, 'public', 'queue.html'));
 });
 
-// Customer ticket page
-app.get('/t/:token', (req, res) => {
+// Customer ticket page (/t/:token, /pelanggan, /ticket, /customer)
+app.get(['/t/:token', '/pelanggan', '/ticket', '/customer', '/t'], (req, res) => {
   res.sendFile(join(__dirname, 'public', 'ticket.html'));
 });
 
 // Cashier / Staff Simulator (legacy)
 app.get('/sim', (req, res) => {
   res.sendFile(join(__dirname, 'public', 'sim.html'));
-});
-
-app.get('/', (req, res) => {
-  res.redirect('/sim');
 });
 
 app.listen(PORT, '0.0.0.0', () => {
