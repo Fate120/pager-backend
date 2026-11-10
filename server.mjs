@@ -64,8 +64,19 @@ setInterval(() => {
 app.get('/api/v1/config', (req, res) => {
   const protocol = req.headers['x-forwarded-proto'] || req.protocol;
   const host = req.get('host');
+  const cfg = store.getConfig();
   res.json({
-    outletName: 'Kedai Kopi Aksiva',
+    ...cfg,
+    baseUrl: `${protocol}://${host}`
+  });
+});
+
+app.put('/api/v1/config', (req, res) => {
+  const updated = store.updateConfig(req.body);
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+  const host = req.get('host');
+  res.json({
+    ...updated,
     baseUrl: `${protocol}://${host}`
   });
 });
@@ -75,6 +86,27 @@ app.get('/api/v1/queue/next', (req, res) => {
   res.json({
     nextQueue: store.peekNextQueueNumber()
   });
+});
+
+// 1c. Orders History & Reports
+app.get('/api/v1/orders', (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 50;
+  res.json(store.getOrders(limit));
+});
+
+app.get('/api/v1/reports/summary', (req, res) => {
+  const date = req.query.date || new Date().toISOString().slice(0, 10);
+  res.json(store.getDailySummary(date));
+});
+
+app.get('/api/v1/reports/trends', (req, res) => {
+  const days = parseInt(req.query.days, 10) || 7;
+  res.json(store.getRevenueTrends(days));
+});
+
+app.get('/api/v1/reports/top-products', (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 5;
+  res.json(store.getTopProducts(limit));
 });
 
 // 2. Create POS Order
