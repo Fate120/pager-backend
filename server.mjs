@@ -11,6 +11,17 @@ const PORT = process.env.PORT || 3100;
 const app = express();
 const store = new OrderStore(join(__dirname, 'data', 'db.json'));
 
+// CORS middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(express.static(join(__dirname, 'public')));
 
@@ -71,7 +82,7 @@ app.get('/api/v1/config', (req, res) => {
   });
 });
 
-app.put('/api/v1/config', (req, res) => {
+const handleUpdateConfig = (req, res) => {
   const updated = store.updateConfig(req.body);
   const protocol = req.headers['x-forwarded-proto'] || req.protocol;
   const host = req.get('host');
@@ -79,6 +90,34 @@ app.put('/api/v1/config', (req, res) => {
     ...updated,
     baseUrl: `${protocol}://${host}`
   });
+};
+app.put('/api/v1/config', handleUpdateConfig);
+app.post('/api/v1/config', handleUpdateConfig);
+
+// Categories & Products
+app.get('/api/v1/categories', (req, res) => {
+  res.json(store.getCategories());
+});
+
+app.get('/api/v1/products', (req, res) => {
+  res.json(store.getProducts());
+});
+
+app.post('/api/v1/products', (req, res) => {
+  const p = store.addProduct(req.body);
+  res.status(201).json(p);
+});
+
+app.put('/api/v1/products/:id', (req, res) => {
+  const p = store.updateProduct(req.params.id, req.body);
+  if (!p) return res.status(404).json({ error: 'Product not found' });
+  res.json(p);
+});
+
+app.delete('/api/v1/products/:id', (req, res) => {
+  const ok = store.deleteProduct(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'Product not found' });
+  res.json({ success: true });
 });
 
 // 1b. Next Queue Number (peek without creating)
@@ -121,6 +160,7 @@ app.post('/api/v1/pos/orders', async (req, res) => {
   const protocol = req.headers['x-forwarded-proto'] || req.protocol;
   const host = req.get('host');
   const ticketUrl = `${protocol}://${host}/t/${ticket.token}`;
+  ticket.ticketUrl = ticketUrl;
 
   // Generate QR Code SVG
   const qrSvg = await QRCode.toString(ticketUrl, {
